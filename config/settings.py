@@ -40,6 +40,10 @@ INSTALLED_APPS = [
     'pages'
 ]
 
+# config/settings.py — ДОДАТИ після стандартного INSTALLED_APPS
+INSTALLED_APPS += ["accounts", "courses"]
+AUTH_USER_MODEL = "accounts.User"
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
