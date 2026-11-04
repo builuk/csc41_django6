@@ -79,16 +79,62 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.1/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.environ["DB_NAME"],
-        "USER": os.environ["DB_USER"],
-        "PASSWORD": os.environ["DB_PASSWORD"],
-        "HOST": os.environ["DB_HOST"],
-        "PORT": os.environ["DB_PORT"],
-    }
+#
+# Основна БД — PostgreSQL. Якщо вона недоступна, Django автоматично
+# переходить на локальну SQLite (файл db.sqlite3).
+# DB_ENGINE=sqlite у .env — примусово SQLite, DB_ENGINE=postgres — лише Postgres.
+
+POSTGRES_DB = {
+    "ENGINE": "django.db.backends.postgresql",
+    "NAME": os.environ.get("DB_NAME", ""),
+    "USER": os.environ.get("DB_USER", ""),
+    "PASSWORD": os.environ.get("DB_PASSWORD", ""),
+    "HOST": os.environ.get("DB_HOST", "127.0.0.1"),
+    "PORT": os.environ.get("DB_PORT", "5432"),
 }
+
+SQLITE_DB = {
+    "ENGINE": "django.db.backends.sqlite3",
+    "NAME": BASE_DIR / os.environ.get("SQLITE_NAME", "db.sqlite3"),
+}
+
+
+def postgres_available(db, timeout=2):
+    """Швидка перевірка, чи можна під'єднатися до Postgres."""
+    if not db["NAME"]:
+        return False
+    try:
+        import psycopg
+
+        with psycopg.connect(
+            dbname=db["NAME"],
+            user=db["USER"],
+            password=db["PASSWORD"],
+            host=db["HOST"],
+            port=db["PORT"],
+            connect_timeout=timeout,
+        ):
+            return True
+    except Exception as exc:
+        print(f"[settings] PostgreSQL недоступний ({exc.__class__.__name__}), використовую SQLite.")
+        return False
+
+
+DB_ENGINE = os.environ.get("DB_ENGINE", "auto").lower()
+
+if DB_ENGINE == "sqlite":
+    default_db = SQLITE_DB
+elif DB_ENGINE == "postgres":
+    default_db = POSTGRES_DB
+else:
+    default_db = POSTGRES_DB if postgres_available(POSTGRES_DB) else SQLITE_DB
+
+DATABASES = {"default": default_db}
+
+# Окремий псевдонім для SQLite, щоб копіювати в неї дані з Postgres
+# (python manage.py copy_to_sqlite).
+if default_db is not SQLITE_DB:
+    DATABASES["sqlite"] = SQLITE_DB
 
 
 # Password validation
