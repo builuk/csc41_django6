@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
 import os
+import sqlite3
+import sys
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -120,9 +122,28 @@ def postgres_available(db, timeout=2):
         return False
 
 
-DB_ENGINE = os.environ.get("DB_ENGINE", "auto").lower()
+def sqlite_ready(path):
+    """Чи є в SQLite-файлі таблиці (чи виконувались міграції)."""
+    if not Path(path).exists():
+        return False
+    try:
+        with sqlite3.connect(path) as conn:
+            row = conn.execute(
+                "SELECT 1 FROM sqlite_master WHERE type='table' AND name='django_migrations'"
+            ).fetchone()
+        return row is not None
+    except sqlite3.Error:
+        return False
 
-if DB_ENGINE == "sqlite":
+
+DB_ENGINE = os.environ.get("DB_ENGINE", "auto").lower()
+RUNNING_TESTS = len(sys.argv) > 1 and sys.argv[1] == "test"
+
+if RUNNING_TESTS:
+    # Тести завжди на SQLite: Django створює тестову БД у пам'яті,
+    # тож не потрібні права CREATEDB у Postgres і тести проходять швидше.
+    default_db = SQLITE_DB
+elif DB_ENGINE == "sqlite":
     default_db = SQLITE_DB
 elif DB_ENGINE == "postgres":
     default_db = POSTGRES_DB
@@ -130,6 +151,12 @@ else:
     default_db = POSTGRES_DB if postgres_available(POSTGRES_DB) else SQLITE_DB
 
 DATABASES = {"default": default_db}
+
+if default_db is SQLITE_DB and not RUNNING_TESTS and not sqlite_ready(SQLITE_DB["NAME"]):
+    print(
+        "[settings] SQLite-база порожня (немає таблиць). Виконайте:\n"
+        "    python manage.py setup_sqlite"
+    )
 
 # Окремий псевдонім для SQLite, щоб копіювати в неї дані з Postgres
 # (python manage.py copy_to_sqlite).

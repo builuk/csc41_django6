@@ -1,0 +1,32 @@
+[
+{
+  "model": "courses.course",
+  "pk": 1,
+  "fields": {
+    "title": "Django Routing",
+    "slug": "django-routing",
+    "capacity": 10,
+    "status": "draft"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 2,
+  "fields": {
+    "title": "Python Backend",
+    "slug": "python-backend",
+    "capacity": 12,
+    "status": "published"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 3,
+  "fields": {
+    "title": "Внутрішній курс",
+    "slug": "internal",
+    "capacity": 5,
+    "status": "draft"
+  }
+}
+]
