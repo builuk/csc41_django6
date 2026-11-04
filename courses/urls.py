@@ -7,6 +7,7 @@ urlpatterns = [
     path("new/", views.course_create, name="create"),
     path("create/", views.course_create, name="create"),
     path("<int:pk>/", views.course_detail, name="detail"),
+    path("<int:pk>/cbv/", views.CourseDetailView.as_view(), name="detail-cbv"),
     path("search/", views.course_search, name="search"),
     path("slug/<slug:slug>/", views.course_by_slug, name="by-slug"),
     path("<int:pk>/json/", views.course_json, name="json"),

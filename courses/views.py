@@ -1,11 +1,12 @@
 from django.http import HttpResponse
 from .models import Course
-from django.shortcuts import get_object_or_404, render
 from django.views.decorators.http import require_safe
 from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.views.decorators.http import require_http_methods
 from django.contrib.admin.views.decorators import staff_member_required
+from django.shortcuts import get_object_or_404, render
+from django.views import View
 
 
 def course_list(request):
@@ -13,9 +14,6 @@ def course_list(request):
 
 def course_create(request):
     return HttpResponse("Форма створення курсу (демо)")
-
-def course_detail(request, pk):
-    return HttpResponse(f"Курс #{pk}; тип: {type(pk).__name__}")
 
 def course_by_slug(request, slug):
     return HttpResponse(f"Slug курсу: {slug}")
@@ -29,10 +27,10 @@ def visible_courses(user):
         return Course.objects.all()
     return Course.objects.filter(status="published")
 
-@require_safe
-def course_detail(request, pk):
-    course = get_object_or_404(visible_courses(request.user), pk=pk)
-    return render(request, "courses/detail.html", {"course": course})
+# @require_safe
+# def course_detail(request, pk):
+#     course = get_object_or_404(visible_courses(request.user), pk=pk)
+#     return render(request, "courses/detail.html", {"course": course})
 
 @require_safe
 def course_json(request, pk):
@@ -62,3 +60,17 @@ def course_create(request):
     Course.objects.create(title=title, slug=slug,
                           capacity=capacity, status="draft")
     return redirect("courses:list")
+
+# visible_courses(user) — наявна у проєкті функція
+# вибірки лише тих курсів, які можна показувати user.
+
+def course_detail(request, pk):
+    course = get_object_or_404(visible_courses(request.user), pk=pk)
+    return render(request, "courses/detail.html", {"course": course})
+
+class CourseDetailView(View):
+    http_method_names = ["get", "head", "options"]
+
+    def get(self, request, pk):
+        course = get_object_or_404(visible_courses(request.user), pk=pk)
+        return render(request, "courses/detail.html", {"course": course})
