@@ -74,3 +74,8 @@ class CourseDetailView(View):
     def get(self, request, pk):
         course = get_object_or_404(visible_courses(request.user), pk=pk)
         return render(request, "courses/detail.html", {"course": course})
+
+class CourseListView(View):
+    def get(self, request):
+        courses = visible_courses(request.user).order_by("pk")
+        return render(request, "courses/list.html", {"courses": courses})
