@@ -27,11 +27,6 @@ def visible_courses(user):
         return Course.objects.all()
     return Course.objects.filter(status="published")
 
-# @require_safe
-# def course_detail(request, pk):
-#     course = get_object_or_404(visible_courses(request.user), pk=pk)
-#     return render(request, "courses/detail.html", {"course": course})
-
 @require_safe
 def course_json(request, pk):
     course = get_object_or_404(visible_courses(request.user), pk=pk)
@@ -79,3 +74,14 @@ class CourseListView(View):
     def get(self, request):
         courses = visible_courses(request.user).order_by("pk")
         return render(request, "courses/list.html", {"courses": courses})
+
+class CourseJsonView(View):
+    def get(self, request, pk):
+        course = get_object_or_404(
+            visible_courses(request.user), pk=pk
+        )
+        return JsonResponse({
+            "id": course.pk,
+            "title": course.title,
+            "capacity": course.capacity,
+        })
