@@ -88,3 +88,12 @@ def course_detail(request, pk):
 def course_list(request):
     courses = visible_courses(request.user).order_by("pk")
     return render(request, "courses/list.html", {"courses": courses})
+
+@require_safe
+def course_lessons(request, pk):
+    course = get_object_or_404(visible_courses(request.user), pk=pk)
+    lessons = course.lessons.order_by("position", "pk")
+    return render(request, "courses/lessons.html", {
+        "course": course,
+        "lessons": lessons,
+    })

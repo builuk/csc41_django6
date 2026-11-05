@@ -13,5 +13,5 @@ urlpatterns = [
     path("slug/<slug:slug>/", views.course_by_slug, name="by-slug"),
     path("<int:pk>/json/", views.course_json, name="json"),
     path("<int:pk>/json-cbv/", views.CourseJsonView.as_view(), name="json-cbv"),
-
+    path("<int:pk>/lessons/", views.course_lessons, name="lessons"),
 ]

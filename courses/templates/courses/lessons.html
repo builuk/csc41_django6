@@ -1,0 +1,13 @@
+{% extends "courses/base.html" %}
+{% block title %}Уроки · {{ course.title }}{% endblock %}
+{% block content %}
+  <h1>Уроки курсу «{{ course.title }}»</h1>
+  <ol>
+    {% for lesson in lessons %}
+      <li>{{ lesson.position }}. {{ lesson.title }}</li>
+    {% empty %}
+      <li>Уроків поки немає.</li>
+    {% endfor %}
+  </ol>
+  <a href="{% url 'courses:detail' course.pk %}">Назад до курсу</a>
+{% endblock %}
