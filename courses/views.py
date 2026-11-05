@@ -36,11 +36,6 @@ def course_json(request, pk):
         "capacity": course.capacity,
     })
 
-@require_safe
-def course_list(request):
-    courses = visible_courses(request.user).order_by("pk")
-    return render(request, "courses/list.html", {"courses": courses})
-
 @staff_member_required
 @require_http_methods(["POST"])
 def course_create(request):
@@ -58,10 +53,6 @@ def course_create(request):
 
 # visible_courses(user) — наявна у проєкті функція
 # вибірки лише тих курсів, які можна показувати user.
-
-def course_detail(request, pk):
-    course = get_object_or_404(visible_courses(request.user), pk=pk)
-    return render(request, "courses/detail.html", {"course": course})
 
 class CourseDetailView(View):
     http_method_names = ["get", "head", "options"]
@@ -85,3 +76,15 @@ class CourseJsonView(View):
             "title": course.title,
             "capacity": course.capacity,
         })
+
+
+@require_safe
+def course_detail(request, pk):
+    course = get_object_or_404(visible_courses(request.user), pk=pk)
+    return render(request, "courses/detail.html", {"course": course})
+
+
+@require_safe
+def course_list(request):
+    courses = visible_courses(request.user).order_by("pk")
+    return render(request, "courses/list.html", {"courses": courses})

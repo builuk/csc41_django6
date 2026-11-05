@@ -1,9 +1,7 @@
-<!-- courses/templates/courses/detail.html -->
-<!doctype html>
-<html lang="uk">
-<head><meta charset="utf-8"><title>{{ course.title }}</title></head>
-<body>
+{% extends "base.html" %}
+{% block title %}{{ course.title }} · EduHub{% endblock %}
+{% block content %}
   <h1>{{ course.title }}</h1>
   <p>Місткість: {{ course.capacity }}</p>
-</body>
-</html>
+  <a href="{% url 'courses:list' %}">← До списку курсів</a>
+{% endblock %}
