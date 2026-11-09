@@ -1,0 +1,19 @@
+{% extends "courses/base.html" %}
+{% block content %}
+<p><a href="{% url 'courses:create' %}">+ Додати курс</a></p>
+<ul>
+{% for course in courses %}
+  <li>
+    {{ course.title }}
+    {% if course.document %}
+      — <a href="{{ course.document.url }}">Текстовий документ</a>
+    {% else %}
+      — без документа
+    {% endif %}
+    — <a href="{% url 'courses:edit' course.pk %}">Редагувати</a>
+  </li>
+{% empty %}
+  <li>Курсів ще немає.</li>
+{% endfor %}
+</ul>
+{% endblock %}

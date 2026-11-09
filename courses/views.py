@@ -64,7 +64,7 @@ class CourseDetailView(View):
 class CourseListView(View):
     def get(self, request):
         courses = visible_courses(request.user).order_by("pk")
-        return render(request, "courses/list.html", {"courses": courses})
+        return render(request, "courses/course_list.html", {"courses": courses})
 
 class CourseJsonView(View):
     def get(self, request, pk):
@@ -87,7 +87,7 @@ def course_detail(request, pk):
 # @require_safe
 # def course_list(request):
 #     courses = visible_courses(request.user).order_by("pk")
-#     return render(request, "courses/list.html", {"courses": courses})
+#     return render(request, "courses/course_list.html", {"courses": courses})
 
 @require_safe
 def course_lessons(request, pk):

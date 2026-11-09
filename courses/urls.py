@@ -14,4 +14,5 @@ urlpatterns = [
     path("<int:pk>/json/", views.course_json, name="json"),
     path("<int:pk>/json-cbv/", views.CourseJsonView.as_view(), name="json-cbv"),
     path("<int:pk>/lessons/", views.course_lessons, name="lessons"),
+    path("<int:pk>/edit/", views.course_edit, name="edit"),
 ]

@@ -1,12 +1,14 @@
+{% load static %}
 <!doctype html>
 <html lang="uk">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}EduHub{% endblock %}</title>
+  <title>EduHub · Пара 19</title>
+  <link rel="stylesheet" href="{% static 'courses/site.css' %}">
 </head>
 <body>
-  <nav><a href="{% url 'courses:list' %}">Курси</a></nav>
+  <header><h1>EduHub · Курси</h1></header>
   <main>{% block content %}{% endblock %}</main>
 </body>
 </html>
