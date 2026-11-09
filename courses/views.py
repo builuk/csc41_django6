@@ -7,13 +7,13 @@ from django.views.decorators.http import require_http_methods
 from django.contrib.admin.views.decorators import staff_member_required
 from django.shortcuts import get_object_or_404, render
 from django.views import View
+from .forms import CourseForm
 
+# def course_list(request):
+#     return HttpResponse("Список курсів EduHub")
 
-def course_list(request):
-    return HttpResponse("Список курсів EduHub")
-
-def course_create(request):
-    return HttpResponse("Форма створення курсу (демо)")
+# def course_create(request):
+#     return HttpResponse("Форма створення курсу (демо)")
 
 def course_by_slug(request, slug):
     return HttpResponse(f"Slug курсу: {slug}")
@@ -36,20 +36,20 @@ def course_json(request, pk):
         "capacity": course.capacity,
     })
 
-@staff_member_required
-@require_http_methods(["POST"])
-def course_create(request):
-    title = request.POST.get("title", "").strip()
-    slug = request.POST.get("slug", "").strip()
-    capacity_raw = request.POST.get("capacity", "")
-    if not title or not slug or not capacity_raw.isdecimal():
-        return JsonResponse({"error": "Некоректні поля"}, status=400)
-    capacity = int(capacity_raw)
-    if capacity <= 0:
-        return JsonResponse({"error": "Місткість має бути додатною"}, status=400)
-    Course.objects.create(title=title, slug=slug,
-                          capacity=capacity, status="draft")
-    return redirect("courses:list")
+# @staff_member_required
+# @require_http_methods(["POST"])
+# def course_create(request):
+#     title = request.POST.get("title", "").strip()
+#     slug = request.POST.get("slug", "").strip()
+#     capacity_raw = request.POST.get("capacity", "")
+#     if not title or not slug or not capacity_raw.isdecimal():
+#         return JsonResponse({"error": "Некоректні поля"}, status=400)
+#     capacity = int(capacity_raw)
+#     if capacity <= 0:
+#         return JsonResponse({"error": "Місткість має бути додатною"}, status=400)
+#     Course.objects.create(title=title, slug=slug,
+#                           capacity=capacity, status="draft")
+#     return redirect("courses:list")
 
 # visible_courses(user) — наявна у проєкті функція
 # вибірки лише тих курсів, які можна показувати user.
@@ -84,10 +84,10 @@ def course_detail(request, pk):
     return render(request, "courses/detail.html", {"course": course})
 
 
-@require_safe
-def course_list(request):
-    courses = visible_courses(request.user).order_by("pk")
-    return render(request, "courses/list.html", {"courses": courses})
+# @require_safe
+# def course_list(request):
+#     courses = visible_courses(request.user).order_by("pk")
+#     return render(request, "courses/list.html", {"courses": courses})
 
 @require_safe
 def course_lessons(request, pk):
@@ -97,3 +97,28 @@ def course_lessons(request, pk):
         "course": course,
         "lessons": lessons,
     })
+
+def course_list(request):
+    courses = Course.objects.order_by("id")
+    return render(request, "courses/course_list.html", {"courses": courses})
+
+def course_create(request):
+    if request.method == "POST":
+        form = CourseForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            return redirect("courses:list")
+    else:
+        form = CourseForm()
+    return render(request, "courses/course_form.html", {"form": form})
+
+def course_edit(request, pk):
+    course = get_object_or_404(Course, pk=pk)
+    if request.method == "POST":
+        form = CourseForm(request.POST, request.FILES, instance=course)
+        if form.is_valid():
+            form.save()
+            return redirect("courses:list")
+    else:
+        form = CourseForm(instance=course)
+    return render(request, "courses/course_form.html", {"form": form, "course": course})
