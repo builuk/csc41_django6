@@ -1,0 +1,10 @@
+{% extends "courses/base.html" %}
+{% block content %}
+<h2>{% if course %}Редагувати курс{% else %}Створити курс{% endif %}</h2>
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit">Зберегти</button>
+</form>
+<p><a href="{% url 'courses:list' %}">До списку</a></p>
+{% endblock %}

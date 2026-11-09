@@ -1,6 +1,10 @@
-from django.test import TestCase
+from pathlib import Path
+from tempfile import TemporaryDirectory
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import TestCase, override_settings
 from django.urls import reverse
 from .models import Course
+
 
 class CourseViewsTests(TestCase):
     @classmethod
@@ -99,3 +103,70 @@ class CourseViewsTests(TestCase):
     def test_draft_lessons_hidden_from_guest(self):
         response = self.client.get(reverse("courses:lessons", args=[self.draft.pk]))
         self.assertEqual(response.status_code, 404)
+
+class CourseUploadTests(TestCase):
+    def setUp(self):
+        self.temp = TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        override = override_settings(MEDIA_ROOT=self.temp.name)
+        override.enable()
+        self.addCleanup(override.disable)
+        self.url = reverse("courses:create")
+
+    def uploaded(self, name, data):
+        return SimpleUploadedFile(name, data, content_type="text/plain")
+
+    def files_on_disk(self):
+        return [p for p in Path(self.temp.name).rglob("*") if p.is_file()]
+
+    def test_valid_utf8_txt_saved(self):
+        response = self.client.post(self.url, {
+            "title": "Python", "document": self.uploaded("notes.txt", "Привіт".encode("utf-8")),
+        })
+        self.assertRedirects(response, reverse("courses:list"))
+        course = Course.objects.get()
+        self.assertTrue(course.document.name.startswith("course_documents/"))
+        self.assertTrue(course.document.name.endswith("notes.txt"))
+        with course.document.open("rb") as f:
+            self.assertEqual(f.read(), "Привіт".encode("utf-8"))
+        self.assertEqual(len(self.files_on_disk()), 1)
+
+    def test_optional_document(self):
+        response = self.client.post(self.url, {"title": "Без файлу"})
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(Course.objects.count(), 1)
+        self.assertEqual(len(self.files_on_disk()), 0)
+
+    def assert_rejected(self, name, data):
+        response = self.client.post(self.url, {
+            "title": "Невалідний", "document": self.uploaded(name, data),
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'class="errorlist"')
+        self.assertEqual(Course.objects.count(), 0)
+        self.assertEqual(len(self.files_on_disk()), 0)
+
+    def test_html_rejected(self):
+        self.assert_rejected("page.html", b"<h1>hello</h1>")
+
+    def test_invalid_utf8_rejected(self):
+        self.assert_rejected("bad.txt", b"\xff\xfe")
+
+    def test_too_large_rejected(self):
+        self.assert_rejected("big.txt", b"a" * (100 * 1024 + 1))
+
+    def test_null_byte_rejected(self):
+        self.assert_rejected("binary.txt", b"hello\x00world")
+
+    def test_edit_title_without_replacing_document(self):
+        self.client.post(self.url, {
+            "title": "До", "document": self.uploaded("notes.txt", b"hello"),
+        })
+        course = Course.objects.get()
+        old_name = course.document.name
+        response = self.client.post(reverse("courses:edit", args=[course.pk]), {"title": "Після"})
+        self.assertEqual(response.status_code, 302)
+        course.refresh_from_db()
+        self.assertEqual(course.title, "Після")
+        self.assertEqual(course.document.name, old_name)
+        self.assertEqual(len(self.files_on_disk()), 1)
