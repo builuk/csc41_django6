@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<!-- saved from url=(0086)https://codebook.pythonanywhere.com/courses/python_ai_ua_author/classes/lesson_41.html -->
+<html lang="uk" data-lang="ua"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex, notranslate, noai, noimageai">
+    <meta name="googlebot" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
+    <meta name="bingbot" content="noindex, nofollow, noarchive, nosnippet">
+    <meta name="gptbot" content="noindex, nofollow">
+    <meta name="chatgpt-user" content="noindex, nofollow">
+    <meta name="claudebot" content="noindex, nofollow">
+    <meta name="anthropic-ai" content="noindex, nofollow">
+    <meta name="ccbot" content="noindex, nofollow">
+    <meta name="perplexitybot" content="noindex, nofollow">
+    <link rel="tdm-reservation" href="https://codebook.pythonanywhere.com/.well-known/tdmrep.json">
+    <link rel="icon" type="image/png" href="https://codebook.pythonanywhere.com/favicon.png?v=2">
+    <link rel="apple-touch-icon" href="https://codebook.pythonanywhere.com/favicon.png?v=2">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Lesson Journal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com/">
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+    <link href="./Lesson Journal_files/css2" rel="stylesheet">
+    <script type="module" crossorigin="" src="./Lesson Journal_files/index-Bf0iOEke.js"></script>
+    <link rel="stylesheet" crossorigin="" href="./Lesson Journal_files/index-BLT_eNEa.css">
+  </head>
+  <body>
+    <div id="root"><div class="shell shell-reader"><main class="main"><div class="materials-immersive is-notebook-open" data-lh-theme="green"><header class="materials-immersive-bar"><div class="materials-immersive-top"><a class="back ghost-btn" href="https://codebook.pythonanywhere.com/courses/python_ai_ua_author" data-discover="true"><span class="materials-back-full">← До тематичного плану</span><span class="materials-back-short">← План</span></a><span class="chip chip-pairs"><span class="materials-pair-full">Пара 41 з 50</span><span class="materials-pair-short">Пара 41</span></span><button type="button" class="ghost-btn materials-immersive-menu" aria-expanded="false" aria-controls="materials-immersive-actions" aria-label="Ще"><span aria-hidden="true">☰</span></button></div><strong class="materials-immersive-title">41 — RAG; ембединги та векторний пошук; база знань із тексту, PDF і CSV</strong><div class="materials-immersive-actions" id="materials-immersive-actions"><div class="materials-version-toolbar"><div class="material-version-menu is-compact material-version-student materials-version-inline materials-version-student-slot" data-material-version="3.0"><button type="button" class="ghost-btn material-version-trigger" aria-haspopup="listbox" aria-expanded="false"><span class="material-version-trigger-label">Студенти</span><span class="material-version-trigger-value is-current is-student">v3.0</span><span class="material-version-trigger-caret" aria-hidden="true">▾</span></button></div><div class="material-version-menu is-compact materials-version-inline materials-version-preview" data-material-version="3.0"><button type="button" class="ghost-btn material-version-trigger" aria-haspopup="listbox" aria-expanded="false"><span class="material-version-trigger-label">Версія</span><span class="material-version-trigger-value is-current">v3.0</span><span class="material-version-trigger-caret" aria-hidden="true">▾</span></button></div></div><div class="project-flag-control materials-teacher-flag"><label><input type="checkbox"><span>Показувати блоки «Для викладача»</span></label></div><div class="project-flag-control materials-teacher-flag"><label title="У режимі редактора видно всі блоки попередніх версій: зелений бейдж — є в вибраній версії, помаранчевий — додано пізніше або вже прибрано. Зніміть «Показувати», щоб сховати блок від студентів. На парі 17 (v15) увімкніть «Приховати», щоб у режимі викладача з’явився чекбокс «Студентам» (зелений пунктир)."><input type="checkbox"><span>Режим редактора</span></label></div><div class="materials-theme-switch" role="group" aria-label="Theme"><button type="button" class="materials-theme-btn is-active" aria-pressed="true">Green</button><button type="button" class="materials-theme-btn" aria-pressed="false">Light</button><button type="button" class="materials-theme-btn" aria-pressed="false">Dark</button></div><button type="button" class="ghost-btn materials-notebook-toggle is-pressed" aria-pressed="true">Ноутбук</button><a class="ghost-btn" href="https://codebook.pythonanywhere.com/courses/python_ai_ua_author/classes/lesson_40.html" data-discover="true"><span class="materials-action-full">← Попередня пара</span><span class="materials-action-short">← Назад</span></a><a class="ghost-btn" href="https://codebook.pythonanywhere.com/courses/python_ai_ua_author/classes/lesson_42.html" data-discover="true"><span class="materials-action-full">Наступна пара →</span><span class="materials-action-short">Далі →</span></a></div></header><div class="materials-immersive-stage"><iframe class="materials-immersive-frame" title="41 — RAG; ембединги та векторний пошук; база знань із тексту, PDF і CSV" src="./Lesson Journal_files/presentation.html" allow="fullscreen"></iframe></div></div></main></div></div>
+  
+
+</body></html>
