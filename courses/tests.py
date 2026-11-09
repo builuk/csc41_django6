@@ -68,3 +68,34 @@ class CourseViewsTests(TestCase):
             reverse("courses:detail-cbv", args=[999999])
         )
         self.assertEqual(response.status_code, 404)
+
+    def test_templates_show_shared_navigation(self):
+        response = self.client.get(reverse("courses:detail", args=[self.published.pk]))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Python Backend")
+        self.assertContains(response, "Курси")
+
+    def test_course_title_is_escaped(self):
+        self.published.title = "<script>alert(1)</script>"
+        self.published.save(update_fields=["title"])
+        response = self.client.get(reverse("courses:detail", args=[self.published.pk]))
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, "<script>")
+        self.assertContains(response, "&lt;script&gt;")
+
+    def test_lessons_empty(self):
+        response = self.client.get(reverse("courses:lessons", args=[self.published.pk]))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Уроків поки немає.")
+
+    def test_lessons_rendered_in_order(self):
+        Lesson.objects.create(course=self.published, title="Другий урок", position=2)
+        Lesson.objects.create(course=self.published, title="Перший урок", position=1)
+        response = self.client.get(reverse("courses:lessons", args=[self.published.pk]))
+        self.assertEqual(response.status_code, 200)
+        content = response.content.decode("utf-8")
+        self.assertLess(content.index("Перший урок"), content.index("Другий урок"))
+
+    def test_draft_lessons_hidden_from_guest(self):
+        response = self.client.get(reverse("courses:lessons", args=[self.draft.pk]))
+        self.assertEqual(response.status_code, 404)
