@@ -102,9 +102,12 @@ def course_list(request):
     courses = Course.objects.order_by("id")
     return render(request, "courses/course_list.html", {"courses": courses})
 
+@staff_member_required
 def course_create(request):
     if request.method == "POST":
         form = CourseForm(request.POST, request.FILES)
+        # Власник курсу — користувач, який його створює
+        form.instance.owner = request.user
         if form.is_valid():
             form.save()
             return redirect("courses:list")
@@ -112,6 +115,7 @@ def course_create(request):
         form = CourseForm()
     return render(request, "courses/course_form.html", {"form": form})
 
+@staff_member_required
 def course_edit(request, pk):
     course = get_object_or_404(Course, pk=pk)
     if request.method == "POST":

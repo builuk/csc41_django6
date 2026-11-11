@@ -1,18 +1,26 @@
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.db import IntegrityError, transaction
+from django.db.models.deletion import ProtectedError
 from django.test import TestCase, override_settings
 from django.urls import reverse
-from .models import Course, Lesson
+from .models import Assignment, Course, Lesson
 
 
 class CourseViewsTests(TestCase):
     @classmethod
     def setUpTestData(cls):
+        cls.owner = get_user_model().objects.create_user(
+            username="owner", password="test-only")
         cls.published = Course.objects.create(
-            title="Python Backend", slug="python", capacity=12, status="published")
+            owner=cls.owner, title="Python Backend", slug="python",
+            capacity=12, status="published")
         cls.draft = Course.objects.create(
-            title="Чернетка", slug="draft", capacity=5, status="draft")
+            owner=cls.owner, title="Чернетка", slug="draft",
+            capacity=5, status="draft")
 
     def test_html(self):
         url = reverse("courses:detail", args=[self.published.pk])
@@ -112,6 +120,9 @@ class CourseUploadTests(TestCase):
         override.enable()
         self.addCleanup(override.disable)
         self.url = reverse("courses:create")
+        self.staff = get_user_model().objects.create_user(
+            username="staff", password="test-only", is_staff=True)
+        self.client.force_login(self.staff)
 
     def uploaded(self, name, data):
         return SimpleUploadedFile(name, data, content_type="text/plain")
@@ -125,6 +136,7 @@ class CourseUploadTests(TestCase):
         })
         self.assertRedirects(response, reverse("courses:list"))
         course = Course.objects.get()
+        self.assertEqual(course.owner, self.staff)
         self.assertTrue(course.document.name.startswith("course_documents/"))
         self.assertTrue(course.document.name.endswith("notes.txt"))
         with course.document.open("rb") as f:
@@ -170,3 +182,83 @@ class CourseUploadTests(TestCase):
         self.assertEqual(course.title, "Після")
         self.assertEqual(course.document.name, old_name)
         self.assertEqual(len(self.files_on_disk()), 1)
+
+    def test_guest_cannot_create_course(self):
+        self.client.logout()
+        response = self.client.post(self.url, {"title": "Гість"})
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(Course.objects.count(), 0)
+
+
+class ModelDemoTests(TestCase):
+    def setUp(self):
+        self.owner = get_user_model().objects.create_user(
+            username="teacher", password="test-only"
+        )
+        self.course = Course.objects.create(
+            owner=self.owner, title="Python", slug="python-models", capacity=20
+        )
+        self.lesson = Lesson.objects.create(
+            course=self.course, title="Intro", position=1
+        )
+        self.assignment = Assignment.objects.create(
+            lesson=self.lesson, title="Task"
+        )
+
+    def test_reverse_relations(self):
+        self.assertEqual(self.course.lessons.count(), 1)
+        self.assertEqual(self.lesson.assignments.count(), 1)
+        self.assertEqual(self.owner.owned_courses.count(), 1)
+
+    def test_duplicate_lesson_position(self):
+        duplicate = Lesson(course=self.course, title="Duplicate", position=1)
+        with self.assertRaises(ValidationError):
+            duplicate.full_clean()
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                Lesson.objects.create(
+                    course=self.course, title="Duplicate", position=1
+                )
+
+    def test_same_position_in_other_course_allowed(self):
+        other = Course.objects.create(
+            owner=self.owner, title="Django", slug="django-models", capacity=10
+        )
+        Lesson.objects.create(course=other, title="Intro", position=1)
+        self.assertEqual(Lesson.objects.filter(position=1).count(), 2)
+
+    def test_capacity_validation_and_constraint(self):
+        invalid = Course(
+            owner=self.owner, title="Invalid", slug="invalid", capacity=0
+        )
+        with self.assertRaises(ValidationError):
+            invalid.full_clean()
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                Course.objects.create(
+                    owner=self.owner, title="Invalid", slug="invalid", capacity=0
+                )
+
+    def test_status_and_ordering(self):
+        self.course.status = Course.Status.PUBLISHED
+        self.assertEqual(self.course.get_status_display(), "Опубліковано")
+        Lesson.objects.create(course=self.course, title="Third", position=3)
+        Lesson.objects.create(course=self.course, title="Second", position=2)
+        self.assertEqual(
+            list(self.course.lessons.values_list("position", flat=True)),
+            [1, 2, 3],
+        )
+
+    def test_cascade_and_protect(self):
+        course_id = self.course.pk
+        lesson_id = self.lesson.pk
+        assignment_id = self.assignment.pk
+        with self.assertRaises(ProtectedError):
+            self.owner.delete()
+        self.course.delete()
+        self.assertFalse(Course.objects.filter(pk=course_id).exists())
+        self.assertFalse(Lesson.objects.filter(pk=lesson_id).exists())
+        self.assertFalse(Assignment.objects.filter(pk=assignment_id).exists())
+        self.assertTrue(
+            get_user_model().objects.filter(pk=self.owner.pk).exists()
+        )

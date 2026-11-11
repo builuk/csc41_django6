@@ -3,6 +3,7 @@
   "model": "courses.course",
   "pk": 1,
   "fields": {
+    "owner": ["demo_owner"],
     "title": "Django Routing",
     "slug": "django-routing",
     "capacity": 10,
@@ -13,6 +14,7 @@
   "model": "courses.course",
   "pk": 2,
   "fields": {
+    "owner": ["demo_owner"],
     "title": "Python Backend",
     "slug": "python-backend",
     "capacity": 12,
@@ -23,6 +25,7 @@
   "model": "courses.course",
   "pk": 3,
   "fields": {
+    "owner": ["demo_owner"],
     "title": "Внутрішній курс",
     "slug": "internal",
     "capacity": 5,
