@@ -44,7 +44,10 @@ class Course(models.Model):
 
     class Meta:
         ordering = ["title", "pk"]
+        # UniqueConstraint(course, position) НЕ тут: у Course немає полів
+        # course і position. Він у Lesson.Meta нижче.
         constraints = [
+            # capacity >= 1 перевіряє сама БД (IntegrityError без full_clean)
             models.CheckConstraint(
                 condition=models.Q(capacity__gte=1),
                 name="course_capacity_gte_1",
@@ -65,6 +68,8 @@ class Lesson(models.Model):
     class Meta:
         ordering = ["position", "pk"]
         constraints = [
+            # Унікальна пара (course, position): у ОДНОМУ курсі не може бути
+            # двох уроків з однаковою позицією, у РІЗНИХ курсах — можна.
             models.UniqueConstraint(
                 fields=["course", "position"],
                 name="lesson_position_per_course",
