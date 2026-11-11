@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.utils.text import slugify
 
 
 class Course(models.Model):
@@ -17,7 +18,8 @@ class Course(models.Model):
     status = models.CharField(
         max_length=12, choices=Status.choices, default=Status.DRAFT
     )
-    slug = models.SlugField(unique=True)
+    # Якщо slug не передали, save() згенерує його з назви
+    slug = models.SlugField(unique=True, blank=True)
     capacity = models.PositiveIntegerField(
         default=10, validators=[MinValueValidator(1)]
     )
@@ -25,6 +27,20 @@ class Course(models.Model):
 
     def __str__(self):
         return self.title
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = self.unique_slug(self.title)
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def unique_slug(cls, title):
+        # slugify прибирає кирилицю, тому для «Основи» буде запасне "course"
+        base = slugify(title)[:40] or "course"
+        slug, n = base, 2
+        while cls.objects.filter(slug=slug).exists():
+            slug, n = f"{base}-{n}", n + 1
+        return slug
 
     class Meta:
         ordering = ["title", "pk"]

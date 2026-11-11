@@ -262,3 +262,11 @@ class ModelDemoTests(TestCase):
         self.assertTrue(
             get_user_model().objects.filter(pk=self.owner.pk).exists()
         )
+
+    def test_slug_generated_when_missing(self):
+        c1 = Course.objects.create(owner=self.owner, title="Django", capacity=15)
+        c2 = Course.objects.create(owner=self.owner, title="Django", capacity=15)
+        c3 = Course.objects.create(owner=self.owner, title="Основи", capacity=5)
+        self.assertEqual(c1.slug, "django")
+        self.assertEqual(c2.slug, "django-2")
+        self.assertEqual(c3.slug, "course")
