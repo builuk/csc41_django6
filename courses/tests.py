@@ -270,3 +270,110 @@ class ModelDemoTests(TestCase):
         self.assertEqual(c1.slug, "django")
         self.assertEqual(c2.slug, "django-2")
         self.assertEqual(c3.slug, "course")
+
+
+class ModelRulesTests(TestCase):
+    """Тести до контрольних запитань блоку 6 методпакета пари 20."""
+
+    def setUp(self):
+        self.owner = get_user_model().objects.create_user(
+            username="rules", password="test-only"
+        )
+        self.course = Course.objects.create(
+            owner=self.owner, title="Python", capacity=20
+        )
+
+    # 1. save() НЕ викликає full_clean() автоматично
+    # 11. choices не створюють SQL CHECK
+    def test_save_skips_validation_and_choices_not_in_db(self):
+        self.course.status = "archived"  # значення поза Status.choices
+        self.course.save()  # жодної помилки: save() не перевіряє choices
+        self.course.refresh_from_db()
+        self.assertEqual(self.course.status, "archived")
+        with self.assertRaises(ValidationError) as ctx:
+            self.course.full_clean()
+        self.assertIn("status", ctx.exception.message_dict)
+
+    # 3. PositiveIntegerField дозволяє 0
+    def test_positive_integer_field_allows_zero_position(self):
+        lesson = Lesson(course=self.course, title="Нульовий", position=0)
+        lesson.full_clean()  # не падає
+        lesson.save()
+        self.assertEqual(lesson.position, 0)
+
+    # 4. Index — не правило унікальності
+    def test_index_does_not_forbid_duplicates(self):
+        Course.objects.create(owner=self.owner, title="Python", capacity=5)
+        self.assertEqual(
+            Course.objects.filter(status="draft", title="Python").count(), 2
+        )
+
+    # 9. QuerySet.update() оминає validators, але не обмеження БД
+    def test_update_bypasses_validators_but_not_db_constraint(self):
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                Course.objects.filter(pk=self.course.pk).update(capacity=0)
+        self.course.refresh_from_db()
+        self.assertEqual(self.course.capacity, 20)
+
+    # 10. get_status_display() повертає людський підпис
+    def test_default_status_and_display(self):
+        self.assertEqual(self.course.status, Course.Status.DRAFT)
+        self.assertEqual(self.course.get_status_display(), "Чернетка")
+
+    # 12. ordering = ["title", "pk"] дає стабільний порядок
+    def test_course_ordering_by_title_then_pk(self):
+        b = Course.objects.create(owner=self.owner, title="Django", capacity=5)
+        c = Course.objects.create(owner=self.owner, title="Django", capacity=5)
+        self.assertEqual(
+            list(Course.objects.values_list("pk", flat=True)),
+            [b.pk, c.pk, self.course.pk],
+        )
+
+    # Index і constraints справді оголошені в Meta
+    def test_meta_declares_index_and_constraints(self):
+        self.assertIn(
+            "course_status_title", [i.name for i in Course._meta.indexes]
+        )
+        self.assertIn(
+            "course_capacity_gte_1", [c.name for c in Course._meta.constraints]
+        )
+        self.assertIn(
+            "lesson_position_per_course",
+            [c.name for c in Lesson._meta.constraints],
+        )
+        # UniqueConstraint стоїть у Lesson, а не в Course
+        self.assertNotIn(
+            "lesson_position_per_course",
+            [c.name for c in Course._meta.constraints],
+        )
+
+    # CASCADE: видалення уроку видаляє його завдання, але не курс
+    def test_lesson_delete_cascades_to_assignments_only(self):
+        lesson = Lesson.objects.create(course=self.course, title="L", position=1)
+        Assignment.objects.create(lesson=lesson, title="A1")
+        Assignment.objects.create(lesson=lesson, title="A2")
+        lesson.delete()
+        self.assertEqual(Assignment.objects.count(), 0)
+        self.assertTrue(Course.objects.filter(pk=self.course.pk).exists())
+
+    # Після delete() pk стає None — повторне видалення неможливе
+    def test_second_delete_raises_value_error(self):
+        self.course.delete()
+        self.assertIsNone(self.course.pk)
+        with self.assertRaises(ValueError):
+            self.course.delete()
+
+    # Явно переданий slug не перезаписується
+    def test_explicit_slug_is_kept(self):
+        course = Course.objects.create(
+            owner=self.owner, title="Python", slug="my-python", capacity=5
+        )
+        self.assertEqual(course.slug, "my-python")
+
+    def test_str_returns_title(self):
+        lesson = Lesson.objects.create(course=self.course, title="Вступ", position=1)
+        assignment = Assignment.objects.create(lesson=lesson, title="Практика")
+        self.assertEqual(str(self.course), "Python")
+        self.assertEqual(str(lesson), "Вступ")
+        self.assertEqual(str(assignment), "Практика")
