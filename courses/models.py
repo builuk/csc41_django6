@@ -13,7 +13,7 @@ class Course(models.Model):
     )
     slug = models.SlugField(unique=True)
     capacity = models.PositiveIntegerField(
-        validators=[MinValueValidator(1)]
+        default=10, validators=[MinValueValidator(1)]
     )
     document = models.FileField(upload_to="course_documents/%Y/%m/", blank=True)
 
@@ -30,11 +30,8 @@ class Course(models.Model):
                 condition=models.Q(capacity__gte=1),
                 name="course_capacity_gte_1",
             ),
-            models.UniqueConstraint(
-                fields=["course", "position"],
-                name="lesson_position_per_course",
-            )
         ]
+
 
 class Lesson(models.Model):
     course = models.ForeignKey(
@@ -42,3 +39,15 @@ class Lesson(models.Model):
     )
     title = models.CharField(max_length=120)
     position = models.PositiveIntegerField()
+
+    class Meta:
+        ordering = ["position", "pk"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["course", "position"],
+                name="lesson_position_per_course",
+            ),
+        ]
+
+    def __str__(self):
+        return self.title

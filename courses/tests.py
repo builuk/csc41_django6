@@ -3,7 +3,7 @@ from tempfile import TemporaryDirectory
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
-from .models import Course
+from .models import Course, Lesson
 
 
 class CourseViewsTests(TestCase):
