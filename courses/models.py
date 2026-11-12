@@ -14,7 +14,7 @@ class Course(models.Model):
         on_delete=models.PROTECT,
         related_name="owned_courses",
     )
-    title = models.CharField(max_length=150)
+    title = models.CharField(max_length=160)
     status = models.CharField(
         max_length=12, choices=Status.choices, default=Status.DRAFT
     )
@@ -84,7 +84,7 @@ class Assignment(models.Model):
     lesson = models.ForeignKey(
         Lesson, on_delete=models.CASCADE, related_name="assignments"
     )
-    title = models.CharField(max_length=150)
+    title = models.CharField(max_length=160)
     description = models.TextField(blank=True)
 
     class Meta:
